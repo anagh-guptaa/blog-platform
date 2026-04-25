@@ -68,7 +68,7 @@ class BlogPost(db.Model):
     date: Mapped[str] = mapped_column(String(250), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
-    comments = relationship("Comment", back_populates="parent_post")
+    comments = relationship("Comment", back_populates="parent_post", cascade="all, delete-orphan")
 
 class Comment(db.Model):
     __tablename__ = "comments"
@@ -201,8 +201,8 @@ def add_new_post():
 @login_required
 def edit_post(post_id):
     post = db.get_or_404(BlogPost, post_id)
-    # Only the post author or admin can edit
-    if current_user.id != post.author_id and current_user.id != 1:
+    # Only the post author can edit their own post
+    if current_user.id != post.author_id:
         return abort(403)
     edit_form = CreatePostForm(
         title=post.title,
